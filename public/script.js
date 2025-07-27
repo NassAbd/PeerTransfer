@@ -24,14 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       body: JSON.stringify({ secret, link })
     })
-    .then(response => {
-      if (response.ok) {
-        alert('Link shared successfully!');
-        linkInput.value = '';
-      } else {
-        alert('Error sharing link. Check your secret.');
-      }
-    });
+      .then(response => {
+        if (response.ok) {
+          alert('Link shared successfully!');
+          linkInput.value = '';
+        } else {
+          alert('Error sharing link. Check your secret.');
+        }
+      });
   });
 
   receiveButton.addEventListener('click', () => {
@@ -61,22 +61,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const formData = new FormData();
-    formData.append('secret', secret);
-    formData.append('file', file);
+    formData.append('file', file); // ❌ Ne plus mettre le secret ici
 
-    fetch('/upload', {
+    // ✅ Ajouter le secret dans l'URL
+    fetch(`/upload?secret=${encodeURIComponent(secret)}`, {
       method: 'POST',
       body: formData
     })
-    .then(response => {
-      if (response.ok) {
-        alert('File uploaded successfully!');
-        fileInput.value = '';
-      } else {
-        alert('Error uploading file. Check your secret.');
-      }
-    });
+      .then(response => {
+        if (response.ok) {
+          alert('File uploaded successfully!');
+          fileInput.value = '';
+        } else {
+          alert('Error uploading file. Check your secret.');
+        }
+      })
+      .catch(error => {
+        console.error('Upload error:', error);
+        alert('Network error during upload.');
+      });
   });
+
 
   fetchFilesButton.addEventListener('click', () => {
     const secret = downloadSecretInput.value;
