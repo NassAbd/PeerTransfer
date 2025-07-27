@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const receiveSecretInput = document.getElementById('receiveSecretInput');
   const receiveButton = document.getElementById('receiveButton');
   const sharedLink = document.getElementById('sharedLink');
+  const uploadSecretInput = document.getElementById('uploadSecretInput');
+  const fileInput = document.getElementById('fileInput');
+  const uploadButton = document.getElementById('uploadButton');
+  const downloadSecretInput = document.getElementById('downloadSecretInput');
+  const fetchFilesButton = document.getElementById('fetchFilesButton');
+  const fileList = document.getElementById('fileList');
 
   sendButton.addEventListener('click', () => {
     const secret = secretInput.value;
@@ -44,4 +50,56 @@ document.addEventListener('DOMContentLoaded', () => {
         sharedLink.textContent = 'Could not retrieve link. Check your secret.';
       });
   });
+
+  uploadButton.addEventListener('click', () => {
+    const secret = uploadSecretInput.value;
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert('Please select a file to upload.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('secret', secret);
+    formData.append('file', file);
+
+    fetch('/upload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('File uploaded successfully!');
+        fileInput.value = '';
+      } else {
+        alert('Error uploading file. Check your secret.');
+      }
+    });
+  });
+
+  fetchFilesButton.addEventListener('click', () => {
+    const secret = downloadSecretInput.value;
+    fetchFiles(secret);
+  });
+
+  function fetchFiles(secret) {
+    fetch(`/files?secret=${secret}`)
+      .then(response => response.json())
+      .then(files => {
+        fileList.innerHTML = '';
+        if (files.length > 0) {
+          files.forEach(file => {
+            const fileElement = document.createElement('div');
+            fileElement.innerHTML = `<a href="/download/${file}?secret=${secret}" download>${file}</a>`;
+            fileList.appendChild(fileElement);
+          });
+        } else {
+          fileList.textContent = 'No files shared yet.';
+        }
+      })
+      .catch(() => {
+        fileList.textContent = 'Could not retrieve files. Check your secret.';
+      });
+  }
 });
